@@ -202,3 +202,16 @@ def update_infobox(stats):
 
     r_edit = session.post(url_api, params=qs_edit, data=pl_edit)
     print(r_edit.text)
+
+
+def upload_template(stats):
+    name = stats[1]
+    uid = stats[0]
+
+    qs_edit['title'] = f"Template:{name}"
+    pl_edit['text'] = "[https://www.collective.gg/try-out?imgurl=" \
+                      f"https://files.collective.gg/p/cards/{uid}-s.png " \
+                      f"{name}"
+
+    r_edit = session.post(url_api, params=qs_edit, data=pl_edit)
+    print(r_edit.text)
