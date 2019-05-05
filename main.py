@@ -28,3 +28,10 @@ elif action == "3":
     for stats in stats_list:
         new_stats = get_card_extra(stats)
         update_infobox(new_stats)
+
+elif action == "4":
+    submit_count = int(input(prompt_4))
+
+    for k in range(submit_count):
+        upload_template(stats_list[k])
+        
