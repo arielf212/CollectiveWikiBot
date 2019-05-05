@@ -2,10 +2,12 @@
 prompt_main = "What would you like to do? Input the corresponding number:\n" \
          "1: Add new entries to the wiki.\n" \
          "2: Update specific entries on the wiki.\n" \
-         "3: Thoroughly update the wiki.\n\n"
+         "3: Thoroughly update the wiki.\n" \
+         "4: Add new card link templates to the wiki.\n\n"
 prompt_1 = "How many new cards should be submitted? (20 per new week should be enough most weeks)\n\n"
 prompt_2 = "Write the exact names of the cards which should be updated separated by \"_-_\"\n" \
            "Example: \"Crushing Waves_-_Absolute Scaling_-_???\"\n\n"
+prompt_4 = "How many new templates should be created? (20 per new week should be enough most weeks)\n\n"
 
 # URLs
 url_api = "https://collective.gamepedia.com/api.php"
