@@ -19,7 +19,12 @@ csrf_token = r_token_csrf.json()['query']['tokens']['csrftoken']
 pl_edit['token'] = csrf_token
 
 
-def parse(text):
+def parse_name(name):
+    name = name.replace("?", "-").replace("&", "-").replace("=", "-").replace(":", "-")
+    return name
+
+
+def parse_text(text):
     text = text.replace("\"", "QUOTATION")
 
     if text.startswith("\n"):
@@ -30,7 +35,8 @@ def parse(text):
 
 
 def de_parse(text):
-    return text.replace("QUOTATION", "\"")
+    if isinstance(text, str):
+        return text.replace("QUOTATION", "\"")
 
 
 def get_cards():
@@ -53,8 +59,8 @@ def get_cards():
             i_release_group = "Core Set"
         if i_text is None:
             i_text = ""
-        i_text = parse(i_text)
-        i_name = parse(i_name)
+        i_text = parse_text(i_text)
+        i_name = parse_text(i_name)
 
         stats = [i_uid, i_name, i_rarity, i_release_group, i_imgurl, i_text]
 
@@ -102,7 +108,7 @@ def get_card_extra(stats):
 
             for i in range(len(props)):
                 if props[i]['Expression']['$type'] == "StringLiteral":
-                    i_text += parse(props[i]['Expression']['Value']) + "\n"
+                    i_text += parse_text(props[i]['Expression']['Value']) + "\n"
 
         for i in range(len(card_abilities)):
             if "Properties" in card_abilities[i]:
@@ -110,13 +116,13 @@ def get_card_extra(stats):
 
                 for j in range(len(props)):
                     if props[j]['Expression']['$type'] == "StringLiteral":
-                        i_text += parse(props[j]['Expression']['Value']) + "\n"
+                        i_text += parse_text(props[j]['Expression']['Value']) + "\n"
 
             elif "$type" in card_abilities[i]:
                 i_text += card_abilities[i]['$type'].replace("Predefines.", "") + "\n"
 
         if i_text:
-            stats[5] = parse(i_text[:-1])
+            stats[5] = parse_text(i_text[:-1])
 
     extras = [i_object_type, i_affinity, i_cost, i_hp, i_atk, i_tribal_type, i_creator_name, i_artist_name]
     stats += extras
@@ -125,6 +131,8 @@ def get_card_extra(stats):
 
 
 def upload_file(stats):
+    do_upload = False
+
     name = stats[1].replace("?", "-").replace("!", "-")
     img_url = stats[4]
 
@@ -132,13 +140,29 @@ def upload_file(stats):
     r_parse = session.get(url_api, params=qs_parse)
 
     print(name)
-    print(r_parse.text)
+
+    img_data = session.get(img_url).content
 
     if "error" in r_parse.json():
-        filename = f"{name}.png"
-        image_data = session.get(img_url).content
+        do_upload = True
 
-        files = {'file': (filename, image_data)}
+    else:
+        qs_img_dl['titles'] = f"File:{name}.png"
+        r_img = session.get(url_api, params=qs_img_dl)
+
+        old_img_url = next(iter(r_img.json()['query']['pages'].values()))['imageinfo'][0]['url']
+        old_img_data = session.get(old_img_url).content
+
+        if not img_data == old_img_data:
+            do_upload = True
+
+        else:
+            print("File there")
+
+    if do_upload:
+        filename = f"{name}.png"
+
+        files = {'file': (filename, img_data)}
 
         pl_upload['token'] = csrf_token
         pl_upload['filename'] = filename
@@ -146,9 +170,7 @@ def upload_file(stats):
         r_upload = session.post(url_api, params=qs_upload, data=pl_upload, files=files)
         print(r_upload.text)
 
-        sleep(7)
-    else:
-        print("File there")
+        sleep(3)
 
 
 def update_infobox(stats):
@@ -195,7 +217,7 @@ def update_infobox(stats):
         new_page = page_content.replace(true_content, info_box)
 
         if info_box == true_content:
-            print("Nothing to see here")
+            print("Infobox matches")
             return
         else:
             pl_edit['text'] = new_page
@@ -206,11 +228,23 @@ def update_infobox(stats):
 
 def upload_template(stats):
     name = stats[1]
-    parsed_name = name.replace("?", "-").replace("&", "-").replace("=", "-").replace(":", "-")
+    parsed_name = parse_name(name)
     img_url = stats[4]
 
     qs_edit['title'] = f"Template:{parsed_name}"
     pl_edit['text'] = f"[https://www.collective.gg/try-out?imgurl={img_url} {name}]"
+
+    r_edit = session.post(url_api, params=qs_edit, data=pl_edit)
+    print(r_edit.text)
+
+
+def upload_tooltip(stats):
+    name = stats[1]
+    parsed_name = parse_name(name)
+
+    qs_edit['title'] = f"{parsed_name}/Tooltip"
+    pl_edit['text'] = "[[File:{{BASEPAGENAME}}.png|450px]]\n" \
+                      "<noinclude>[[Category:Tooltip subpages]]</noinclude>"
 
     r_edit = session.post(url_api, params=qs_edit, data=pl_edit)
     print(r_edit.text)
