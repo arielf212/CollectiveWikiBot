@@ -3,11 +3,13 @@ prompt_main = "What would you like to do? Input the corresponding number:\n" \
          "1: Add new entries to the wiki.\n" \
          "2: Update specific entries on the wiki.\n" \
          "3: Thoroughly update the wiki.\n" \
-         "4: Add new card link templates to the wiki.\n\n"
+         "4: Add new card link templates to the wiki.\n" \
+         "5: Add new tooltips for card pages to the wiki.\n\n"
 prompt_1 = "How many new cards should be submitted? (20 per new week should be enough most weeks)\n\n"
 prompt_2 = "Write the exact names of the cards which should be updated separated by \"_-_\"\n" \
            "Example: \"Crushing Waves_-_Absolute Scaling_-_???\"\n\n"
 prompt_4 = "How many new templates should be created? (20 per new week should be enough most weeks)\n\n"
+prompt_5 = "How many new tooltips should be created? (20 per new week should be enough most weeks)\n\n"
 
 # URLs
 url_api = "https://collective.gamepedia.com/api.php"
@@ -45,8 +47,17 @@ qs_edit = {
 
 qs_upload = {
     'action': "upload",
+    'ignorewarnings': True,
     'format': "json"
     }
+
+qs_img_dl = {
+    'action': "query",
+    'format': "json",
+    'prop': "imageinfo",
+    'iiprop': "url",
+    'titles': ""
+}
 
 # Data payload (for POST requests)
 pl_login = {
@@ -80,3 +91,7 @@ info_template = "Infobox\n" \
                 "| text = {}\n" \
                 "| creatorname = {}\n" \
                 "| artistname = {}\n"
+
+# Card blacklist: these won't be updated unless they are specifically targeted
+blacklist = ["First Aid Manual", "Gloves", "Bandage", "Painkillers", "Scissors",
+             "Assault Wings", "Replicating Mechanism"]
